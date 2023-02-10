@@ -16,13 +16,15 @@ extension UTType {
   }
 }
 
-class TCARFDDocument: ReferenceFileDocument {
+class TCARFDDocument: ReferenceFileDocument, Identifiable {
     
   static var readableContentTypes: [UTType] { [.exampleText] }
 
   required init(configuration: ReadConfiguration) throws {
-    temporaryURL = URL.temporaryDirectory.appending(component: "current.sqlite")
-    backupURL = URL.temporaryDirectory.appending(component: "backup.sqlite")
+    id = UUID()
+    
+    temporaryURL = URL.temporaryDirectory.appending(component: "\(id.uuidString)-current.sqlite")
+    backupURL = URL.temporaryDirectory.appending(component: "\(id.uuidString)-backup.sqlite")
     
     try configuration.file.write(to: temporaryURL, originalContentsURL: nil)
     
@@ -31,10 +33,12 @@ class TCARFDDocument: ReferenceFileDocument {
   }
   
   init() throws {
+    id = UUID()
+    
     let newDocumentURL = Bundle.main.url(forResource: "Untitled", withExtension: "sqlite")!
     
-    temporaryURL = URL.temporaryDirectory.appending(component: "current.sqlite")
-    backupURL = URL.temporaryDirectory.appending(component: "backup.sqlite")
+    temporaryURL = URL.temporaryDirectory.appending(component: "\(id.uuidString)-current.sqlite")
+    backupURL = URL.temporaryDirectory.appending(component: "\(id.uuidString)-backup.sqlite")
     
     let data = try Data(contentsOf: newDocumentURL)
     try data.write(to: temporaryURL)
@@ -54,6 +58,9 @@ class TCARFDDocument: ReferenceFileDocument {
     let data = try Data(contentsOf: backupURL)
     return .init(regularFileWithContents: data)
   }
+  
+  typealias ID = UUID
+  let id: ID
   
   var undoManager: UndoManager?
 
@@ -111,7 +118,6 @@ class TCARFDDocument: ReferenceFileDocument {
   enum UndoContext: Sendable {
     case text
   }
-  
 }
 
 extension DependencyValues {

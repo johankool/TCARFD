@@ -61,10 +61,11 @@ struct ContentView: View {
         .buttonStyle(.bordered)
       }
       .padding()
-      .navigationBarTitleDisplayMode(.inline)
       .task {
         // Pass undo manager to the view store and start task looking for undo/redo events
-        await viewStore.send(.task(undoManager)).finish()
+        // Note that when running on macOS this is often nil
+        // https://stackoverflow.com/questions/73430758/undomanager-environment-nil-until-view-change-swiftui
+        await viewStore.send(.task(undoManager!)).finish()
       }
     }
   }

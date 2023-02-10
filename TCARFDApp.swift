@@ -8,6 +8,8 @@
 import ComposableArchitecture
 import SwiftUI
 
+private var stores: [AnyHashable: StoreOf<DocumentReducer>] = [:]
+
 @main
 struct TCARFDApp: App {
   var body: some Scene {
@@ -16,11 +18,24 @@ struct TCARFDApp: App {
         try! TCARFDDocument()
       },
       editor: { configuration in
-        let store = StoreOf<DocumentReducer>(initialState: .init(), reducer: DocumentReducer()) { dependencies in
-          // Pass the document as a dependency, so any reducer can get data from the reference file document
-          dependencies.document = configuration.document
+        ContentView(store: {
+          let id = configuration.document.id
+          let store: StoreOf<DocumentReducer>
+          if let existingStore = stores[id] {
+            store = existingStore
+          } else {
+            store = StoreOf<DocumentReducer>(initialState: .init(), reducer: DocumentReducer()) { dependencies in
+              // Pass the document as a dependency, so any reducer can get data from the reference file document
+              dependencies.document = configuration.document
+            }
+            stores[id] = store
+          }
+          return store
+        }())
+        .onDisappear {
+          let id = configuration.document.id
+          stores.removeValue(forKey: id)
         }
-        ContentView(store: store)
       }
     )
   }

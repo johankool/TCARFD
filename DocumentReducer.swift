@@ -16,7 +16,7 @@ struct DocumentReducer: ReducerProtocol {
   @Dependency(\.document) var document
   
   enum Action {
-    case task(UndoManager?)
+    case task(UndoManager)
     case loadData
     case addButtonTapped(String)
   }
@@ -42,21 +42,19 @@ struct DocumentReducer: ReducerProtocol {
       }
       
     case .loadData:
-      do {
-        state.text = try document.fetchText()
-      } catch {
-        assertionFailure()
+      if let text = try? document.fetchText() {
+        state.text = text
       }
       return .none
       
     case let .addButtonTapped(text):
-      let newText = state.text.dropLast(1) + " and \(text)!"
+      let newText = String(state.text.dropLast(1) + " and \(text)!")
       
       // Save data in our reference file document
-      try? document.updateText(text: String(newText))
+      try? document.updateText(text: newText)
       
-      // Trigger data reload after storage. Not strictly needed.
-      return .init(value: .loadData)
+      state.text = newText
+      return .none
     }
   }
 }
