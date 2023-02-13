@@ -13,11 +13,20 @@ struct ContentView: View {
   
   @Environment(\.undoManager) var undoManager
   
+  struct ViewState: Equatable {
+    let isUndoDisabled: Bool
+    let isRedoDisabled: Bool
+  }
+  
   var body: some View {
-    WithViewStore(store) { viewStore in
+    WithViewStore(store, observe: { _ in
+      ViewState(
+        isUndoDisabled: !(undoManager?.canUndo ?? false),
+        isRedoDisabled: !(undoManager?.canRedo ?? false)
+      )
+    }) { viewStore in
       VStack {
-        Text(viewStore.text)
-          .font(.title)
+        TitleView(store: store)
         Spacer()
         VStack {
           Button {
@@ -49,14 +58,14 @@ struct ContentView: View {
             Label("Undo", systemImage: "arrow.uturn.backward.circle")
           }
           .keyboardShortcut("z", modifiers: [.command])
-          .disabled(!(undoManager?.canUndo ?? false))
+          .disabled(viewStore.isUndoDisabled)
           Button {
             undoManager?.redo()
           } label: {
             Label("Redo", systemImage: "arrow.uturn.forward.circle")
           }
           .keyboardShortcut("z", modifiers: [.command, .shift])
-          .disabled(!(undoManager?.canRedo ?? false))
+          .disabled(viewStore.isRedoDisabled)
         }
         .buttonStyle(.bordered)
       }
