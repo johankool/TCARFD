@@ -21,7 +21,8 @@ class TCARFDDocument: ReferenceFileDocument, Identifiable {
   static var readableContentTypes: [UTType] { [.exampleText] }
 
   required init(configuration: ReadConfiguration) throws {
-    id = UUID()
+    @Dependency(\.uuid) var uuid
+    self.id = uuid()
     
     temporaryURL = URL.temporaryDirectory.appending(component: "\(id.uuidString)-current.sqlite")
     backupURL = URL.temporaryDirectory.appending(component: "\(id.uuidString)-backup.sqlite")
@@ -33,7 +34,8 @@ class TCARFDDocument: ReferenceFileDocument, Identifiable {
   }
   
   init() throws {
-    id = UUID()
+    @Dependency(\.uuid) var uuid
+    self.id = uuid()
     
     let newDocumentURL = Bundle.main.url(forResource: "Untitled", withExtension: "sqlite")!
     
